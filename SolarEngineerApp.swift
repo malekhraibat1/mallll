@@ -412,6 +412,35 @@ struct PagesListView: View {
         .navigationBarTitle("الصفحات والروابط", displayMode: .inline)
     }
 }
+                Section(header: Text("الموقع الرسمي")) {
+                    NavigationLink(destination: WebPageView(
+                        urlString: AppSite.mainURL,
+                        title: AppSite.mainTitle
+                    )) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "sun.max.fill")
+                                .font(.system(size: 18, weight: .bold))
+                                .foregroundColor(.white)
+                                .frame(width: 36, height: 36)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.orange, .orange.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .cornerRadius(10)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(AppSite.mainTitle)
+                                    .font(.subheadline).fontWeight(.semibold)
+                                Text("maleksolar.vercel.app")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                }
 
 // ═══════════════════════════════════════════════════════════
 // MARK: - QUICK ACCESS BUTTON (زر سريع للـ Dashboard)
