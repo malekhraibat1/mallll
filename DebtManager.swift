@@ -1,4 +1,5 @@
 import SwiftUI
+import Foundation
 
 // ═══════════════════════════════════════════════════════════
 // MARK: - DEBT MODELS
@@ -116,13 +117,17 @@ class DebtStore: ObservableObject {
     }
 
     func addPerson(_ p: DebtPerson) {
-        persons.append(p); save(persons, key: personsKey)
+        persons.append(p)
+        save(persons, key: personsKey)
     }
+
     func updatePerson(_ p: DebtPerson) {
         if let i = persons.firstIndex(where: { $0.id == p.id }) {
-            persons[i] = p; save(persons, key: personsKey)
+            persons[i] = p
+            save(persons, key: personsKey)
         }
     }
+
     func deletePerson(_ p: DebtPerson) {
         persons.removeAll { $0.id == p.id }
         transactions.removeAll { $0.personId == p.id }
@@ -131,13 +136,17 @@ class DebtStore: ObservableObject {
     }
 
     func addTransaction(_ t: DebtTransaction) {
-        transactions.append(t); save(transactions, key: transactionsKey)
+        transactions.append(t)
+        save(transactions, key: transactionsKey)
     }
+
     func updateTransaction(_ t: DebtTransaction) {
         if let i = transactions.firstIndex(where: { $0.id == t.id }) {
-            transactions[i] = t; save(transactions, key: transactionsKey)
+            transactions[i] = t
+            save(transactions, key: transactionsKey)
         }
     }
+
     func deleteTransaction(_ t: DebtTransaction) {
         transactions.removeAll { $0.id == t.id }
         payments.removeAll { $0.transactionId == t.id }
@@ -175,11 +184,14 @@ class DebtStore: ObservableObject {
         transactions.filter { $0.type == .lent && !$0.isPaid }
             .reduce(0) { $0 + $1.remaining }
     }
+
     var totalBorrowed: Double {
         transactions.filter { $0.type == .borrowed && !$0.isPaid }
             .reduce(0) { $0 + $1.remaining }
     }
+
     var netBalance: Double { totalLent - totalBorrowed }
+
     var overdueCount: Int {
         transactions.filter { $0.isOverdue }.count
     }
@@ -196,45 +208,7 @@ struct DebtsView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 12) {
-                HStack(spacing: 12) {
-                    summaryCard(title: "له عندي", value: store.totalLent,
-                                icon: "arrow.up.circle.fill", color: .green)
-                    summaryCard(title: "عليّ له", value: store.totalBorrowed,
-                                icon: "arrow.down.circle.fill", color: .red)
-                }
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("الرصيد الصافي")
-                            .font(.caption).foregroundColor(.secondary)
-                        Text("\(Int(store.netBalance))")
-                            .font(.title2).fontWeight(.bold)
-                            .foregroundColor(store.netBalance >= 0 ? .green : .red)
-                    }
-                    Spacer()
-                    if store.overdueCount > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                            Text("\(store.overdueCount) متأخرة")
-                        }
-                                            if store.overdueCount > 0 {
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                            Text("\(store.overdueCount) متأخرة")
-                        }
-                        .font(.system(size: 12, weight: .semibold))
-                        .padding(.horizontal, 10).padding(.vertical, 5)
-                        .background(Color.red.opacity(0.15))
-                        .foregroundColor(.red)
-                        .cornerRadius(10)
-                    }
-                }
-                .padding()
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(14)
-            }
-            .padding(.horizontal)
-            .padding(.vertical, 12)
+            summarySection
 
             Picker("", selection: $selectedTab) {
                 Text("الأشخاص").tag(0)
@@ -254,7 +228,8 @@ struct DebtsView: View {
         .navigationBarItems(trailing:
             Button(action: { showingNewPerson = true }) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.title2).foregroundColor(.orange)
+                    .font(.title2)
+                    .foregroundColor(.orange)
             }
         )
         .sheet(isPresented: $showingNewPerson) {
@@ -262,16 +237,57 @@ struct DebtsView: View {
         }
     }
 
+    var summarySection: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                summaryCard(title: "له عندي",
+                            value: store.totalLent,
+                            icon: "arrow.up.circle.fill",
+                            color: .green)
+                summaryCard(title: "عليّ له",
+                            value: store.totalBorrowed,
+                            icon: "arrow.down.circle.fill",
+                            color: .red)
+            }
+
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("الرصيد الصافي")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("\(Int(store.netBalance))")
+                        .font(.title2)
+                        .bold()
+                        .foregroundColor(store.netBalance >= 0 ? .green : .red)
+                }
+                Spacer()
+                if store.overdueCount > 0 {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("\(store.overdueCount) متأخرة")
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(Color.red.opacity(0.15))
+                    .foregroundColor(.red)
+                    .cornerRadius(10)
+                }
+            }
+            .padding()
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(14)
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 12)
+    }
+
     var personsList: some View {
         Group {
             if store.persons.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "person.2.circle.fill")
-                        .font(.system(size: 70)).foregroundColor(.orange)
-                    Text("لا يوجد أشخاص").font(.title3).fontWeight(.semibold)
-                    Text("اضغط + لإضافة شخص").foregroundColor(.secondary)
-                }
-                .frame(maxHeight: .infinity)
+                emptyState(icon: "person.2.circle.fill",
+                           title: "لا يوجد أشخاص",
+                           subtitle: "اضغط + لإضافة شخص")
             } else {
                 ScrollView {
                     LazyVStack(spacing: 8) {
@@ -288,6 +304,39 @@ struct DebtsView: View {
         }
     }
 
+    var transactionsList: some View {
+        Group {
+            if store.transactions.isEmpty {
+                emptyState(icon: "list.bullet.rectangle",
+                           title: "لا توجد حركات",
+                           subtitle: "أضف شخصًا ثم أضف له حركة")
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(store.transactions.sorted(by: { $0.date > $1.date })) { t in
+                            transactionRow(t)
+                        }
+                    }
+                    .padding()
+                }
+            }
+        }
+    }
+
+    func emptyState(icon: String, title: String, subtitle: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: icon)
+                .font(.system(size: 70))
+                .foregroundColor(.orange)
+            Text(title)
+                .font(.title3)
+                .bold()
+            Text(subtitle)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxHeight: .infinity)
+    }
+
     func personRow(_ person: DebtPerson) -> some View {
         let bal = store.balanceFor(person.id)
         return HStack(spacing: 12) {
@@ -302,13 +351,18 @@ struct DebtsView: View {
                 .frame(width: 44, height: 44)
                 .overlay(
                     Text(initials(person.name))
-                        .foregroundColor(.white).fontWeight(.bold)
+                        .foregroundColor(.white)
+                        .bold()
                 )
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(person.name).font(.headline).foregroundColor(.primary)
+                Text(person.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
                 if !person.phone.isEmpty {
-                    Text(person.phone).font(.caption).foregroundColor(.secondary)
+                    Text(person.phone)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             Spacer()
@@ -318,9 +372,12 @@ struct DebtsView: View {
                         .font(.headline)
                         .foregroundColor(bal.net > 0 ? .green : .red)
                     Text(bal.net > 0 ? "له عندي" : "عليّ له")
-                        .font(.caption2).foregroundColor(.secondary)
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
                 } else {
-                    Text("متوازن").font(.caption).foregroundColor(.green)
+                    Text("متوازن")
+                        .font(.caption)
+                        .foregroundColor(.green)
                 }
             }
             Image(systemName: "chevron.left").foregroundColor(.secondary)
@@ -328,29 +385,6 @@ struct DebtsView: View {
         .padding()
         .background(Color(.secondarySystemBackground))
         .cornerRadius(14)
-    }
-
-    var transactionsList: some View {
-        Group {
-            if store.transactions.isEmpty {
-                VStack(spacing: 16) {
-                    Image(systemName: "list.bullet.rectangle")
-                        .font(.system(size: 70)).foregroundColor(.orange)
-                    Text("لا توجد حركات").font(.title3).fontWeight(.semibold)
-                    Text("أضف شخصًا ثم أضف له حركة").foregroundColor(.secondary)
-                }
-                .frame(maxHeight: .infinity)
-            } else {
-                ScrollView {
-                    LazyVStack(spacing: 8) {
-                        ForEach(store.transactions.sorted(by: { $0.date > $1.date })) { t in
-                            transactionRow(t)
-                        }
-                    }
-                    .padding()
-                }
-            }
-        }
     }
 
     func transactionRow(_ t: DebtTransaction) -> some View {
@@ -364,27 +398,39 @@ struct DebtsView: View {
                 .cornerRadius(10)
 
             VStack(alignment: .leading, spacing: 3) {
-                Text(personName).font(.subheadline).fontWeight(.semibold)
+                Text(personName)
+                    .font(.subheadline)
+                    .bold()
                 HStack(spacing: 6) {
-                    Text(t.category.rawValue).font(.caption).foregroundColor(.secondary)
+                    Text(t.category.rawValue)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                     Text("·").foregroundColor(.secondary)
-                    Text(formatDate(t.date)).font(.caption).foregroundColor(.secondary)
+                    Text(formatDate(t.date))
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 }
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 3) {
                 Text("\(Int(t.amount))").font(.headline)
                 if t.isPaid {
-                    Text("مدفوع").font(.caption2).foregroundColor(.green)
+                    Text("مدفوع")
+                        .font(.caption2)
+                        .foregroundColor(.green)
                 } else if t.paidAmount > 0 {
                     Text("متبقٍ \(Int(t.remaining))")
-                        .font(.caption2).foregroundColor(.orange)
+                        .font(.caption2)
+                        .foregroundColor(.orange)
                 } else {
                     Text(t.type.rawValue)
-                        .font(.caption2).foregroundColor(t.type.color)
+                        .font(.caption2)
+                        .foregroundColor(t.type.color)
                 }
                 if t.isOverdue {
-                    Text("متأخرة").font(.caption2).foregroundColor(.red)
+                    Text("متأخرة")
+                        .font(.caption2)
+                        .foregroundColor(.red)
                 }
             }
         }
@@ -400,8 +446,12 @@ struct DebtsView: View {
                 Image(systemName: icon).foregroundColor(color)
                 Spacer()
             }
-            Text(title).font(.caption).foregroundColor(.secondary)
-            Text("\(Int(value))").font(.title3).fontWeight(.bold)
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+            Text("\(Int(value))")
+                .font(.title3)
+                .bold()
                 .foregroundColor(color)
         }
         .padding()
@@ -445,7 +495,8 @@ struct AddPersonSheet: View {
                         store.addPerson(DebtPerson(name: name, phone: phone))
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .frame(maxWidth: .infinity).foregroundColor(.orange)
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.orange)
                 }
             }
             .navigationBarTitle("شخص جديد", displayMode: .inline)
@@ -482,26 +533,30 @@ struct PersonLedgerView: View {
                     Text("له عندي")
                     Spacer()
                     Text("\(Int(balance.lent))")
-                        .fontWeight(.bold).foregroundColor(.green)
+                        .bold()
+                        .foregroundColor(.green)
                 }
                 HStack {
                     Text("عليّ له")
                     Spacer()
                     Text("\(Int(balance.borrowed))")
-                        .fontWeight(.bold).foregroundColor(.red)
+                        .bold()
+                        .foregroundColor(.red)
                 }
                 HStack {
-                    Text("الصافي").fontWeight(.bold)
+                    Text("الصافي").bold()
                     Spacer()
                     Text("\(Int(abs(balance.net))) \(balance.net >= 0 ? "له" : "عليّ")")
-                        .fontWeight(.bold)
+                        .bold()
                         .foregroundColor(balance.net >= 0 ? .green : .red)
                 }
             }
 
             Section(header: Text("الحركات (\(transactions.count))")) {
                 if transactions.isEmpty {
-                    Text("لا توجد حركات").font(.caption).foregroundColor(.secondary)
+                    Text("لا توجد حركات")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
                 } else {
                     ForEach(transactions) { t in
                         Button(action: { paymentForTransaction = t }) {
@@ -527,7 +582,8 @@ struct PersonLedgerView: View {
         .navigationBarItems(trailing:
             Button(action: { showingNewTransaction = true }) {
                 Image(systemName: "plus.circle.fill")
-                    .font(.title2).foregroundColor(.orange)
+                    .font(.title2)
+                    .foregroundColor(.orange)
             }
         )
         .sheet(isPresented: $showingNewTransaction) {
@@ -542,36 +598,44 @@ struct PersonLedgerView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Image(systemName: t.type.icon).foregroundColor(t.type.color)
-                Text(t.type.rawValue).font(.subheadline).fontWeight(.semibold)
+                Text(t.type.rawValue).font(.subheadline).bold()
                 Spacer()
                 Text("\(Int(t.amount))").font(.headline)
             }
             HStack(spacing: 8) {
                 Label(t.category.rawValue, systemImage: t.category.icon)
-                    .font(.caption2).foregroundColor(.secondary)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
                 Text("·").foregroundColor(.secondary)
                 Text(formatDate(t.date))
-                    .font(.caption2).foregroundColor(.secondary)
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
             if !t.note.isEmpty {
-                Text(t.note).font(.caption).foregroundColor(.secondary)
+                Text(t.note)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
             if t.paidAmount > 0 && !t.isPaid {
                 ProgressView(value: t.paidRatio)
                 HStack {
                     Text("مدفوع: \(Int(t.paidAmount))")
-                        .font(.caption2).foregroundColor(.green)
+                        .font(.caption2)
+                        .foregroundColor(.green)
                     Spacer()
                     Text("متبقٍ: \(Int(t.remaining))")
-                        .font(.caption2).foregroundColor(.orange)
+                        .font(.caption2)
+                        .foregroundColor(.orange)
                 }
             }
             if t.isPaid {
                 Label("مسددة", systemImage: "checkmark.circle.fill")
-                    .font(.caption2).foregroundColor(.green)
+                    .font(.caption2)
+                    .foregroundColor(.green)
             } else if t.isOverdue {
                 Label("متأخرة!", systemImage: "exclamationmark.triangle.fill")
-                    .font(.caption2).foregroundColor(.red)
+                    .font(.caption2)
+                    .foregroundColor(.red)
             }
         }
         .padding(.vertical, 4)
@@ -655,7 +719,8 @@ struct AddTransactionSheet: View {
                         store.addTransaction(t)
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .frame(maxWidth: .infinity).foregroundColor(.orange)
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.orange)
                 }
             }
             .navigationBarTitle("حركة جديدة", displayMode: .inline)
@@ -685,7 +750,7 @@ struct AddPaymentSheet: View {
                     HStack {
                         Text("المبلغ الأصلي")
                         Spacer()
-                        Text("\(Int(transaction.amount))").fontWeight(.semibold)
+                        Text("\(Int(transaction.amount))").bold()
                     }
                     HStack {
                         Text("مدفوع حتى الآن")
@@ -697,7 +762,8 @@ struct AddPaymentSheet: View {
                         Text("المتبقي")
                         Spacer()
                         Text("\(Int(transaction.remaining))")
-                            .foregroundColor(.orange).fontWeight(.semibold)
+                            .foregroundColor(.orange)
+                            .bold()
                     }
                 }
                 Section(header: Text("الدفعة الجديدة")) {
@@ -712,7 +778,8 @@ struct AddPaymentSheet: View {
                     Button("دفعة كاملة (\(Int(transaction.remaining)))") {
                         amount = "\(Int(transaction.remaining))"
                     }
-                    .font(.caption).foregroundColor(.blue)
+                    .font(.caption)
+                    .foregroundColor(.blue)
                 }
                 Section(header: Text("ملاحظات")) {
                     TextField("ملاحظة (اختياري)", text: $note)
@@ -728,7 +795,8 @@ struct AddPaymentSheet: View {
                         store.addPayment(p)
                         presentationMode.wrappedValue.dismiss()
                     }
-                    .frame(maxWidth: .infinity).foregroundColor(.green)
+                    .frame(maxWidth: .infinity)
+                    .foregroundColor(.green)
                 }
                 if !store.paymentsFor(transaction.id).isEmpty {
                     Section(header: Text("سجل الدفعات")) {
@@ -737,11 +805,13 @@ struct AddPaymentSheet: View {
                                 VStack(alignment: .leading) {
                                     Text("\(Int(p.amount))").font(.subheadline)
                                     Text(formatDate(p.date))
-                                        .font(.caption2).foregroundColor(.secondary)
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
                                 }
                                 Spacer()
                                 if !p.note.isEmpty {
-                                    Text(p.note).font(.caption)
+                                    Text(p.note)
+                                        .font(.caption)
                                         .foregroundColor(.secondary)
                                 }
                             }
