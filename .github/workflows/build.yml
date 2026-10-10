@@ -41,10 +41,6 @@ jobs:
 
       - name: Make IPA
         run: |
-          echo "=== Looking for .app in xcarchive ==="
-          find $RUNNER_TEMP/SolarEngineer.xcarchive -maxdepth 4 -type d
-          echo ""
-          
           APP_PATH=$(find $RUNNER_TEMP/SolarEngineer.xcarchive -name "*.app" -type d | head -1)
           
           if [ -z "$APP_PATH" ]; then
@@ -59,12 +55,11 @@ jobs:
           cd $RUNNER_TEMP
           zip -r SolarEngineer.ipa Payload
           
-          echo "=== IPA ready ==="
           ls -la $RUNNER_TEMP/SolarEngineer.ipa
 
       - name: Upload IPA
         uses: actions/upload-artifact@v4
         with:
           name: SolarEngineer-Unsigned-IPA
-          path: $RUNNER_TEMP/SolarEngineer.ipa
+          path: ${{ runner.temp }}/SolarEngineer.ipa
           retention-days: 30
