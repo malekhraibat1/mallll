@@ -239,15 +239,16 @@ class AppStore: ObservableObject {
 // ═══════════════════════════════════════════════════════════
 // MARK: - APP
 // ═══════════════════════════════════════════════════════════
-
 @main
 struct SolarEngineerApp: App {
     @StateObject private var store = AppStore()
+    @StateObject private var catalogStore = SolarCatalogStore()
     
     var body: some Scene {
         WindowGroup {
             ContentView()
                 .environmentObject(store)
+                .environmentObject(catalogStore)
                 .environment(\.layoutDirection, .rightToLeft)
         }
     }
