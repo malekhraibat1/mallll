@@ -217,7 +217,12 @@ struct DebtsView: View {
                             Image(systemName: "exclamationmark.triangle.fill")
                             Text("\(store.overdueCount) متأخرة")
                         }
-                        .font(.caption).fontWeight(.semibold)
+                                            if store.overdueCount > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                            Text("\(store.overdueCount) متأخرة")
+                        }
+                        .font(.system(size: 12, weight: .semibold))
                         .padding(.horizontal, 10).padding(.vertical, 5)
                         .background(Color.red.opacity(0.15))
                         .foregroundColor(.red)
