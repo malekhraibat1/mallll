@@ -18,15 +18,10 @@ jobs:
       - name: Install XcodeGen
         run: brew install xcodegen
 
-      - name: Show files
-        run: |
-          echo "=== All files ==="
-          find . -type f -not -path "./.git/*" | head -50
-
       - name: Generate project
         run: xcodegen generate
 
-      - name: Build
+      - name: Build Archive
         run: |
           set -o pipefail
           xcodebuild clean archive \
@@ -42,20 +37,32 @@ jobs:
 
       - name: Show errors on failure
         if: failure()
-        run: |
-          echo "=== ERRORS ==="
-          grep -i "error:" build.log | head -30
+        run: grep -i "error:" build.log | head -30
 
       - name: Make IPA
-        if: success()
         run: |
+          echo "=== Looking for .app in xcarchive ==="
+          find $RUNNER_TEMP/SolarEngineer.xcarchive -maxdepth 4 -type d
+          echo ""
+          
+          APP_PATH=$(find $RUNNER_TEMP/SolarEngineer.xcarchive -name "*.app" -type d | head -1)
+          
+          if [ -z "$APP_PATH" ]; then
+            echo "❌ No .app found!"
+            exit 1
+          fi
+          
+          echo "✅ Found app at: $APP_PATH"
+          
           mkdir -p $RUNNER_TEMP/Payload
-          cp -R $RUNNER_TEMP/SolarEngineer.xcarchive/Products/Applications/*.app $RUNNER_TEMP/Payload/
+          cp -R "$APP_PATH" $RUNNER_TEMP/Payload/
           cd $RUNNER_TEMP
           zip -r SolarEngineer.ipa Payload
+          
+          echo "=== IPA ready ==="
+          ls -la $RUNNER_TEMP/SolarEngineer.ipa
 
       - name: Upload IPA
-        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: SolarEngineer-Unsigned-IPA
