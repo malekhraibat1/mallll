@@ -21,43 +21,55 @@ struct ContentView: View {
                     Label("حول", systemImage: "info.circle.fill")
                 }
         }
-        .tint(.orange)
+        .accentColor(.orange)
     }
 }
 
 struct HomeView: View {
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(spacing: 24) {
                 Image(systemName: "sun.max.fill")
                     .font(.system(size: 90))
-                    .foregroundStyle(.orange)
+                    .foregroundColor(.orange)
 
                 Text("SolarEngineer")
-                    .font(.largeTitle.bold())
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
 
                 Text("مساعد مهندس الطاقة الشمسية")
                     .font(.title3)
-                    .foregroundStyle(.secondary)
+                    .foregroundColor(.secondary)
 
                 Spacer()
             }
             .padding()
-            .navigationTitle("الرئيسية")
+            .navigationBarTitle("الرئيسية", displayMode: .large)
         }
     }
 }
 
 struct AboutView: View {
     var body: some View {
-        NavigationStack {
+        NavigationView {
             List {
-                Section("عن التطبيق") {
-                    LabeledContent("الاسم", value: "SolarEngineer")
-                    LabeledContent("الإصدار", value: "1.0.0")
+                Section(header: Text("عن التطبيق")) {
+                    HStack {
+                        Text("الاسم")
+                        Spacer()
+                        Text("SolarEngineer")
+                            .foregroundColor(.secondary)
+                    }
+                    HStack {
+                        Text("الإصدار")
+                        Spacer()
+                        Text("1.0.0")
+                            .foregroundColor(.secondary)
+                    }
                 }
             }
-            .navigationTitle("حول")
+            .listStyle(GroupedListStyle())
+            .navigationBarTitle("حول", displayMode: .large)
         }
     }
 }
