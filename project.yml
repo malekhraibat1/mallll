@@ -21,6 +21,8 @@ targets:
     deploymentTarget: "15.0"
     sources:
       - path: SolarEngineerApp.swift
+      - path: DebtManager.swift
+      - path: WebPageView.swift
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.malek.SolarEngineer
