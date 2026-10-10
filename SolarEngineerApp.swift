@@ -1215,6 +1215,11 @@ struct MoreView: View {
                         }
                     }
                 }
+                Section(header: Text("أدوات القياس والكتالوج")) {
+                    NavigationLink(destination: SolarToolsHubView()) {
+                        Label("أدوات الطاقة الشمسية", systemImage: "wrench.and.screwdriver.fill")
+                    }
+                }
 
                 Section(header: Text("الحاسبات")) {
                     NavigationLink(destination: QuickCalcView()) {
